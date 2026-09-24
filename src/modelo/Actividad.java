@@ -1,10 +1,15 @@
+package modelo;
+
+import excepciones.CupoExcedidoException;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Actividad {
+public abstract class Actividad  implements Serializable {
     private int id;
-    private String titulo;
-    private int cupoMaximo;
+    protected String titulo;
+    protected int cupoMaximo;
     public static final int CUPO_MINIMO = 5;
     private List<Inscripcion> inscripciones;
 
@@ -15,14 +20,14 @@ public abstract class Actividad {
         this.inscripciones = new ArrayList<>();
     }
 
-    public Inscripcion inscribir(Estudiante estudiante) {
+    public Inscripcion inscribir(Estudiante estudiante) throws CupoExcedidoException {
         if (inscripciones.size() < cupoMaximo) {
             Inscripcion nuevaInscripcion = new Inscripcion(estudiante);
             inscripciones.add(nuevaInscripcion);
             return nuevaInscripcion;
         } else {
-            System.out.println("Cupo lleno para la actividad: " + titulo);
-            return null;
+            throw new CupoExcedidoException("CUPO LLEGO PARA LA ACTIVIDAD: "+titulo);
+
         }
     }
 
@@ -41,13 +46,18 @@ public abstract class Actividad {
 
     // Método final que no puede ser redefinido por las subclases
     public final void mostrarIdentificacion() {
-        System.out.println("Actividad ID: " + id + " | Título: " + titulo + " | Tipo: " + getTipo());
+        System.out.println("modelo.Actividad ID: " + id + " | Título: " + titulo + " | Tipo: " + getTipo());
     }
 
-    // Métodos abstractos a implementar por Charla y Taller
+    // Métodos abstractos a implementar por modelo.Charla y modelo.Taller
     public abstract double calcularCostoMateriales();
     public abstract String getTipo();
 
-    public int getId() { return id; }
-    public String getTitulo() { return titulo; }
+    public int getId() {
+        return id; }
+    public String getTitulo() {
+        return titulo; }
+    public List<Inscripcion> getInscripciones() {
+        return inscripciones;
+    }
 }

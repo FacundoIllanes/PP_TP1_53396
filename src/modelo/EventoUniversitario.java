@@ -1,7 +1,10 @@
+package modelo;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EventoUniversitario {
+public class EventoUniversitario implements Serializable {
     private final String id;
     private String titulo;
     private double costoBase;
@@ -36,9 +39,9 @@ public class EventoUniversitario {
 
     public void crearActividad(int id, String titulo, int cupo, String tipo, String datoExtra) {
         Actividad nuevaActividad = null;
-        if (tipo.equalsIgnoreCase("Charla")) {
+        if (tipo.equalsIgnoreCase("modelo.Charla")) {
             nuevaActividad = new Charla(id, titulo, cupo, datoExtra);
-        } else if (tipo.equalsIgnoreCase("Taller")) {
+        } else if (tipo.equalsIgnoreCase("modelo.Taller")) {
             boolean requiereNotebook = Boolean.parseBoolean(datoExtra);
             nuevaActividad = new Taller(id, titulo, cupo, requiereNotebook);
         }
@@ -63,7 +66,7 @@ public class EventoUniversitario {
         System.out.println("=========================================");
         System.out.println("Evento ID: " + id + " | Título: " + titulo);
         System.out.println("Gratuito: " + (gratuito ? "Sí" : "No") + " | Costo Estimado: $" + calcularCostoEstimado());
-        System.out.println("Sala: " + (sala != null ? sala.getNombre() : "Sin sala asignada"));
+        System.out.println("modelo.Sala: " + (sala != null ? sala.getNombre() : "Sin sala asignada"));
         System.out.println("Actividades del evento:");
         if (actividades.isEmpty()) {
             System.out.println("   (No hay actividades registradas)");
@@ -76,6 +79,40 @@ public class EventoUniversitario {
         }
         System.out.println("=========================================");
     }
+    public boolean PersistirEvento(){
+        try  (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(this.id + ".dat"))) {
+            oos.writeObject(this);
+            return true;
+        } catch (IOException e){
+            System.out.println("Error de E/S al persistir el evento: "+ e.getMessage());
+            return false;
+        }
+
+    }
+
+    public static EventoUniversitario recuperarEvento(String id)throws IOException, ClassNotFoundException{
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(id + ".dat"))) {
+            return (EventoUniversitario) ois.readObject();
+        }
+    }
+    public <T extends Actividad> List<T> filtrarActividadesPorTipo(Class<T> tipo) {
+        List<T> listaFiltrada = new ArrayList<>();
+        for (Actividad a : actividades) {
+            if (tipo.isInstance(a)) {
+                listaFiltrada.add(tipo.cast(a));
+            }
+        }
+        return listaFiltrada;
+    }
+
+    public double calcularCostoMateriales(List<? extends Actividad> listaActividades) {
+        double costoTotal = 0.0;
+        for (Actividad a : listaActividades) {
+            costoTotal += a.calcularCostoMateriales();
+        }
+        return costoTotal;
+    }
+
 
     public static int getCantidadEventos() {
         return cantidadEventos;
